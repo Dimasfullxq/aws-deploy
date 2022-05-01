@@ -1,0 +1,50 @@
+version: "3.7"
+
+volumes:
+  postgres:
+  in_memory_store:
+
+services:
+  db:
+    image: postgres:14.2
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  in_memory_store:
+    image: redis:5-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - in_memory_store:/var/lib/redis/data
+
+  server_app: &server_app
+    build:
+      context: ../../
+      dockerfile: docker/development/Dockerfile
+    command: bundle exec rails server -b 0.0.0.0
+    entrypoint: docker/development/entrypoint.sh
+    tty: true
+    stdin_open: true
+    environment: &server_app_env
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      REDIS_URL: redis://in_memory_store:6379
+    depends_on:
+      - db
+    ports:
+      - 3000:3000
+
+  server_worker_app:
+    <<: *server_app
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    entrypoint: ""
+    ports: []
+    depends_on:
+      - db
+      - in_memory_store
