@@ -48,8 +48,16 @@
     - `Target type -> Instances`
     - Fill in its name
     - `Protocol -> HTTP`, `PORT -> 80`
-    - For Health checks, enter route name for health checking(Just add route that returns 200 status)
+    - For Health checks, enter route name for health checking(Just add route that returns 200 status in your app)
     - Create
 9. Choose just created target group
 10. `Create load balancer`
 
+### Push app build to ecr
+1. Run in root of your project `docker build . -f docker/<env_name>/Dockerfile `
+2. Copy just built image id from `docker images` output
+3. Run `docker tag <image_id> <ecr_link>:<tag>`, ecr_link - copy link from repository that created in ECR, tag - for example, `staging`
+4. Run `aws configure` and fill in access key and secret key from saved IAM credentails (This step need to be done only one time)
+5. Run `aws ecr get-login --no-include-email --region=<your_region>` and copy-past output and run this command
+6. Run `docker push <ecr_link>:<tag>`
+7. DONE
