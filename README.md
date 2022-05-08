@@ -32,3 +32,24 @@
    - `type -> all TCP`, `source -> <security group that created for load balancer>`
 9.Create
 
+### Create SSH key-pair
+1. Go to EC2, find `key pairs`
+2. Create new key-pair (fill-in its name and seve .pem file on your local machine)
+
+### Create load balancer
+1. Go to EC2, find `load balancers`, click `Create new load balancer`
+2. Choose `Application load balancer` type, click next
+3. Fill in its name
+4. `Scheme -> Internet-facing`
+5. `IP address type -> IPv4`
+6. In `Network mapping` choose at least 2 subnets, don't forget what subnets you've chosen, you will need it later
+7. In `Security Groups` select secutiry goup for load balancer that have beed created earlier
+8. `Listeners and routing` -> create new target group:
+    - `Target type -> Instances`
+    - Fill in its name
+    - `Protocol -> HTTP`, `PORT -> 80`
+    - For Health checks, enter route name for health checking(Just add route that returns 200 status)
+    - Create
+9. Choose just created target group
+10. `Create load balancer`
+
