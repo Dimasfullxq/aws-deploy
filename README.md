@@ -19,3 +19,16 @@
 1. Go to ECR (Elastic Container Registry), click `Create Repository`
 2. Enter repo name and click `Create`
 
+### Prepare security groups for load balancer and our app
+1. Go to EC2, find `Scurity groups`
+2. Click `Create security group`
+3. Enter name and description (sg-load-balancer)
+4. Add inbound rule `Type -> HTTP`, `Source -> Anywhere ipv4`
+5. Create
+6. Create another group for app
+7. Enter name and description (sg-rails)
+8. Add inbound rules:
+   - `type -> SSH`, `source -> anywhwre ipv4`
+   - `type -> all TCP`, `source -> <security group that created for load balancer>`
+9.Create
+
