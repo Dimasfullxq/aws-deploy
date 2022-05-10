@@ -61,3 +61,66 @@
 5. Run `aws ecr get-login --no-include-email --region=<your_region>` and copy-past output and run this command
 6. Run `docker push <ecr_link>:<tag>`
 7. DONE
+
+### Create task definition for rails app, sidekiq, redis, db(postgres)
+1. Go to ecs, click `Task Definitions`
+2. Create new task definition
+3. Enter name
+4. `type -> ec2`
+5. Scroll down and add volumes:
+      1. `Name -> redis
+          Volume type -> Docker
+          Driver -> local
+          Scope -> Shared
+          Auto-provisioning enabled -> true`
+      2.  `Name -> postgres
+          Volume type -> Docker
+          Driver -> local
+          Scope -> Shared
+          Auto-provisioning enabled -> true`
+      3. `Name -> public Volume type -> Bind Mount`
+6. Enter task memory and task cpu (for example 512x512)
+
+Next we need to add containers (rails-server, db-host, redis-db, sidekiq)
+
+redis-db:
+1. `Image -> image name from docker-hub`
+2. Ports `6379:6379`
+3. Healthcheck `command -> CMD-SHELL,redis-cli -h localhost ping, interval -> 30, timeout -> 5, retries -> 3`
+4. Storage and logging `mount points -> source_volume -> redis, cont_path -> /data`
+5. Log configuration `true`
+6. Create
+
+db-host:
+1. `Image -> image name from docker hub`
+2. Ports `5432:5432`
+3. Healthcheck `command -> CMD-SHELL,pg_isready -U postgres, interval -> 30, timeout -> 5, retries -> 3`
+4. Env variables such as `POSTGRES_USER -> postgres, POSTGRES_PASSWORD -> postgres`
+5. Storage and logging `mount points -> source_volume -> postgres, cont_path -> /var/lib/postgresql/data`
+6. Log configuration `true`
+7. Create
+
+rails-server:
+1. `Image -> <ecr_link>:<tag>`
+2. Ports `3000:3000`
+3. Healthcheck `command -> CMD-SHELL,curl -f http://localhost:3000/health_check || exit 1, interval -> 30, timeout -> 5, retries -> 3`
+4. Environment `entry point -> docker/staging/entrypoint.sh, command -> bundle,exec,puma,-C,config/puma.rb,-p,3000`
+5. Env variables (all env variables we need like RAILS_ENV, AWS KEYS), exmaple: `DB_HOST -> db-host(we created earlier), REDIS_URL -> redis://redis-db:6379/1 (we created earlier)`
+6. Startup deps ordering `db-host -> HEALTHY, redis-db -> HEALTHY`
+7. Network settings `links -> db-host,redis-db (we connect to redis and db from our app)`
+8. Storage and logging `mount points -> source_volume -> public, cont_path -> /home/www/<app_name>/public (path to public folder of our app) check Dockerfile`
+9. Log configuration `true`
+10. Create
+
+sidekiq:
+1. `Image -> <ecr_link>:<tag>`
+2. Ports `skip`
+3. Healthcheck `command -> CMD-SHELL,ps ax | grep -v grep | grep sidekiq || exit 1, interval -> 30, timeout -> 5, retries -> 3`
+4. Environment `command -> bundle,exec,sidekiq,-C,config/sidekiq.yml`
+5. Env variables `copy from rails-server`
+6. Startup deps ordering `db-host -> HEALTHY, redis-db -> HEALTHY, rails-server -> HEALTHY`
+7. Network settings `links -> db-host,redis-db (we connect to redis and db from our app)`
+8. Storage and logging `mount points -> source_volume -> public, cont_path -> /home/www/<app_name>/public (path to public folder of our app) check Dockerfile`
+9. Log configuration `true`
+10. Create
+
