@@ -30,6 +30,7 @@
 8. Add inbound rules:
    - `type -> SSH`, `source -> anywhwre ipv4`
    - `type -> all TCP`, `source -> <security group that created for load balancer>`
+
 9.Create
 
 ### Create SSH key-pair
@@ -125,3 +126,46 @@ sidekiq:
 10. Create
 
 Create Task Definition -> DONE
+
+### Create ECS cluster
+1. Go to ECS, find `Clusters` -> `Create new cluster`
+2. Type -> `EC2 + Networking`
+3. Enter cluster name
+4. Provisioning Model -> `On-Demand Instance`
+5. Instance_type -> `t2.micro`
+6. Number of instances, `for now -> 1`
+7. Key-pair -> `select key-pair that was created earlier`
+8. Networking `VPC -> select default VPC, subnets -> select 2 subnets that were selecte in load balancer`
+9. Security group -> `select security group that created for rails server`
+10. CloudWatch Container Insights -> `true`
+11. Create
+
+### Create ECS Service
+1. Go to ECS, go to clusters, click on cluster that was created
+2. Go to services, click create
+3. Launch type -> `EC2`
+4. Task definition -> `taskDefinition that was created earlier`
+5. Enter name
+6. Number of tasks -> at least 1 for now
+7. Min healthy percent -> 0
+8. Max healthy percent -> 100
+9. Load balancer type -> `ApplicationLoadBalancer`
+10. Health check grace period -> `100`
+11. Load balancer name -> `select load balancer that created earlier`
+12. Click `Add to load balancer`
+13. Set auto scaling (optional)
+14. Create Service
+15. Wait untill task inside service with all containers are healthy
+16. Check container logs if task fails
+
+### If task is green check your instance
+1. Go to EC2
+2. Find `Load Balancers` tab, click
+3. Go to your load balancer
+4. Scroll down and find `Listeners` tab, click
+5. Click on traget group
+6. If everything is you will see `Healthy -> 1, Unhealthy -> 0`
+7. Back to load balancer
+8. In descitpion tab find `DNS name`
+9. Visit link
+10. Dance and have fun cause all work is done and your app is working
