@@ -124,3 +124,4 @@ sidekiq:
 9. Log configuration `true`
 10. Create
 
+Create Task Definition -> DONE
