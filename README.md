@@ -5,10 +5,11 @@
 2. Run `docker-compose -f docker/development/docker-compose.yml up` to check if it's working on local machine
 
 ### Create IAM user in aws console
+ Create new Policy for ecr full access - name it 'full access to ecr'
 1. Sign up and sign in to AWS console
 2. Go to IAM service, choose users tab, click `Add users`
 3. Enter username, choose `Access key - Programmatic access`
-4. From policies choose `AdministratorAccess` or any policies for your purposes
+4. From policies choose just created policy(full access to ecr)
 5. Review and create new user
 6. !Important!, save credentials for this user
 7. Create new password for this user via `Security credentials` tab on user's detail page
