@@ -1,0 +1,20 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+  timeout: 5000
+  host: <%= ENV['DB_HOST'] || 'localhost' %>
+  username: <%= ENV['DB_USER'] || Rails.application.credentials.dig(:db, :user) %>
+  password: <%= ENV['DB_PASSWORD'] || Rails.application.credentials.dig(:db, :password) %>
+
+development:
+  <<: *default
+  database: db_development
+test:
+  <<: *default
+  database: db_test
+staging:
+  <<: *default
+  database:  db_staging
+production:
+  <<: *default
